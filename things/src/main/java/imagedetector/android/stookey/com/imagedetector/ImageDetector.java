@@ -2,13 +2,7 @@ package imagedetector.android.stookey.com.imagedetector;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.ImageFormat;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
@@ -17,8 +11,12 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
+import com.google.android.things.contrib.driver.button.Button;
+import com.google.android.things.contrib.driver.voicehat.VoiceHat;
+import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManagerService;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -36,6 +34,12 @@ public class ImageDetector extends Activity {
 
     private static final int BUTTON_DEBOUNCE_DELAY_MS = 20;
     private static final boolean USE_VOICEHAT_I2S_DAC = Build.DEVICE.equals(BoardDefaults.DEVICE_RP13);
+
+    private com.google.android.things.contrib.driver.button.Button mButton;
+    private Gpio mLed;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,12 +64,42 @@ public class ImageDetector extends Activity {
         mCamera = Camera.getInstance();
         mCamera.initializeCamera(this, mCameraHandler, mOnImageAvailableListener);
 
+
+        Log.d(TAG, "Configuring GPIO Peripheral Pins from the VoiceHat");
+        try {
+            mButton = VoiceHat.openButton();
+            mLed = VoiceHat.openLed();
+            mButton.setDebounceDelay(BUTTON_DEBOUNCE_DELAY_MS);
+            mButton.setOnButtonEventListener(new Button.OnButtonEventListener() {
+                @Override
+                public void onButtonEvent(Button button, boolean pressed) {
+                    //Do Something with Button Press here.
+                    try {
+                        if(mLed.getValue() == true)
+                            mLed.setValue(false);
+                        else
+                            mLed.setValue(true);
+                        Log.d(TAG, "Taking Picture");
+                        mCamera.takePicture();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            mLed.setDirection(Gpio.DIRECTION_OUT_INITIALLY_LOW);
+            mLed.setActiveType(Gpio.ACTIVE_HIGH);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+
     }
 
-    //Start the Button.
-    private void initPIO(){
 
-    }
+
+
+
 
     private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
