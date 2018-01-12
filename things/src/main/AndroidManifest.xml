@@ -1,0 +1,30 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="imagedetector.android.stookey.com.imagedetector">
+    <uses-permission android:name="android.permission.CAMERA"/>
+
+
+<application android:label="@string/app_name">
+    <uses-library android:name="com.google.android.things"/>
+
+
+
+    <activity android:name=".ImageDetector">
+        <!-- This is to launch on Android Studio-->
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN"></action>
+            <category android:name="android.intent.category.LAUNCHER"></category>
+        </intent-filter>
+        <!-- This is to launch on boot on the Raspberry Pi3-->
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN"></action>
+            <category android:name="android.intent.category.IOT_LAUNCHER"></category>
+            <category android:name="android.intent.category.DEFAULT"></category>
+        </intent-filter>
+    </activity>
+
+</application>
+
+
+</manifest>
+
+
