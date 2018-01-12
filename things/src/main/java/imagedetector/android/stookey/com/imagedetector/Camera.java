@@ -28,8 +28,8 @@ public class Camera {
 
     private static final String TAG = Camera.class.getSimpleName();
 
-    private static final int IMAGE_WIDTH = 1944;
-    private static final int IMAGE_HEIGHT = 2592;
+     static final int IMAGE_WIDTH = 1944;
+     static final int IMAGE_HEIGHT = 2592;
     private static final int MAX_IMAGES = 3;
 
     //IMAGE RESULT PROCESSOR

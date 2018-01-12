@@ -3,6 +3,7 @@ package imagedetector.android.stookey.com.imagedetector;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -25,12 +26,20 @@ import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
+
+import imagedetector.android.stookey.com.imagedetector.classifier.Classifier;
+import imagedetector.android.stookey.com.imagedetector.classifier.TensorFlowImageClassifier;
 
 /**
  * Created by Stookey on 1/11/18.
  */
 
 public class ImageDetector extends Activity {
+
+    private ImagePreprocessor mImagePreprocessor;
+    private TensorFlowImageClassifier mTensorFlowClassifier;
+
     private static final String TAG = "ImageDetector";
     private Handler mCameraHandler;
     private HandlerThread mCameraThread;
@@ -110,6 +119,10 @@ public class ImageDetector extends Activity {
         public void onImageAvailable(ImageReader reader) {
             //Get the raw image bytes
             Image image = reader.acquireLatestImage();
+            //Processes the image to be entered into the TensorFlow model
+            Bitmap bitmapPicture = mImagePreprocessor.preprocessImage(image);
+            //Gets the results from the TensorFlow model
+            final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmapPicture);
             ByteBuffer imageBuf= image.getPlanes()[0].getBuffer();
             final byte[] imageBytes = new byte[imageBuf.remaining()];
             imageBuf.get(imageBytes);
@@ -121,6 +134,7 @@ public class ImageDetector extends Activity {
     private void onPictureTaken(final byte[] imageBytes){
         if (imageBytes != null) {
             //Do something with the image.
+            //Image Uploaded to Firebase Storage
             Log.d(TAG, "Photo ready to be processed");
             StorageReference tensorImages = mStorageReference.child("images/tensor.jpg");
             tensorImages.putBytes(imageBytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
