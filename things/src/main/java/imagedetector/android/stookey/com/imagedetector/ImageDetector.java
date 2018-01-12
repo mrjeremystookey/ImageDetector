@@ -5,16 +5,23 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.media.Image;
 import android.media.ImageReader;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.contrib.driver.voicehat.VoiceHat;
 import com.google.android.things.pio.Gpio;
 import com.google.android.things.pio.PeripheralManagerService;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -28,6 +35,7 @@ public class ImageDetector extends Activity {
     private Handler mCameraHandler;
     private HandlerThread mCameraThread;
 
+    private StorageReference mStorageReference;
 
     private Camera mCamera;
     private PeripheralManagerService service;
@@ -92,13 +100,9 @@ public class ImageDetector extends Activity {
             e.printStackTrace();
         }
 
-
+        mStorageReference = FirebaseStorage.getInstance().getReference();
 
     }
-
-
-
-
 
 
     private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
@@ -117,6 +121,21 @@ public class ImageDetector extends Activity {
     private void onPictureTaken(final byte[] imageBytes){
         if (imageBytes != null) {
             //Do something with the image.
+            Log.d(TAG, "Photo ready to be processed");
+            StorageReference tensorImages = mStorageReference.child("images/tensor.jpg");
+            tensorImages.putBytes(imageBytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                    Log.d(TAG, "View the image here: " + downloadUrl);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.d(TAG, "Unable to upload to Firebase");
+                }
+            });
+
         }
     }
 
