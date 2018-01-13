@@ -62,6 +62,7 @@ public class Camera {
             Log.d(TAG, "# of Cameras: "+ camIds.length);
             Log.d(TAG, "List of Camera IDs: " + camIds);
 
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
             Log.d(TAG, "initializeCamera: error getting cam ids", e);

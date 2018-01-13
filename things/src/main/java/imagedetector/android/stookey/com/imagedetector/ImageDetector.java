@@ -84,6 +84,7 @@ public class ImageDetector extends Activity {
 
         Log.d(TAG, "Configuring GPIO Peripheral Pins from the VoiceHat");
         try {
+
             mButton = VoiceHat.openButton();
             mLed = VoiceHat.openLed();
             mButton.setDebounceDelay(BUTTON_DEBOUNCE_DELAY_MS);
@@ -157,7 +158,32 @@ public class ImageDetector extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         mCameraThread.quitSafely();
-
+        Log.i(TAG, "destroying assistant demo");
+        if (mLed != null) {
+            try {
+                mLed.close();
+            } catch (IOException e) {
+                Log.w(TAG, "error closing LED", e);
+            }
+            mLed = null;
+        }
+        if (mButton != null) {
+            try {
+                mButton.close();
+            } catch (IOException e) {
+                Log.w(TAG, "error closing button", e);
+            }
+            mButton = null;
+        }
+//        if (mDac != null) {
+//            try {
+//                mDac.close();
+//            } catch (IOException e) {
+//                Log.w(TAG, "error closing voice hat trigger", e);
+//            }
+//            mDac = null;
     }
 
 }
+
+
