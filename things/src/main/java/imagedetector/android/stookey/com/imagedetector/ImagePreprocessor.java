@@ -3,6 +3,7 @@ package imagedetector.android.stookey.com.imagedetector;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
+import android.nfc.Tag;
 import android.util.Log;
 
 import junit.framework.Assert;
@@ -22,16 +23,21 @@ public class ImagePreprocessor {
 
     //Constructor
     public ImagePreprocessor(){
+        Log.d("TAG", "Preprocessor Initialized");
         this.croppedBitmap = Bitmap.createBitmap(Helper.IMAGE_SIZE, Helper.IMAGE_SIZE, Bitmap.Config.ARGB_8888);
         this.rgbFrameBitmap = Bitmap.createBitmap(Camera.IMAGE_WIDTH, Camera.IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
+        Log.d(TAG, "Camera.IMAGE_WIDTH, Camera.IMAGE_HEIGHT: "+ Camera.IMAGE_WIDTH +", "+ Camera.IMAGE_HEIGHT);
     }
 
     public Bitmap preprocessImage(final Image image){
         if(image == null){
             return null;
         }
+        Log.d(TAG, "Preprocessing Image...");
+        Log.d(TAG, "Image Properties: "  + image.getWidth() + ", " + image.getHeight());
+        Log.d(TAG, "rgbFrameBitmap properties: " + rgbFrameBitmap.getWidth() + ", " + rgbFrameBitmap.getHeight());
 
-
+        //Not sure what these lines do, will research later
         Assert.assertEquals("Invalid size width", rgbFrameBitmap.getWidth(), image.getWidth());
         Assert.assertEquals("Invalid size height", rgbFrameBitmap.getHeight(), image.getHeight());
 
@@ -40,7 +46,7 @@ public class ImagePreprocessor {
             rgbFrameBitmap = BitmapFactory.decodeStream(new ByteBufferBackedInputStream(bb));
             Helper.cropAndRescaleBitmap(rgbFrameBitmap, croppedBitmap, 0);
         }
-        image.close();
+        //image.close();
         Log.d(TAG,"croppedBitmap: " + croppedBitmap.toString());
         return croppedBitmap;
     }

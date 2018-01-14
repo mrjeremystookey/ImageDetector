@@ -56,6 +56,9 @@ public class ImageDetector extends Activity {
     private com.google.android.things.contrib.driver.button.Button mButton;
     private Gpio mLed;
 
+    private Bitmap bitmapPicture;
+    private List<Classifier.Recognition> results;
+
 
 
 
@@ -122,16 +125,25 @@ public class ImageDetector extends Activity {
         @Override
         public void onImageAvailable(ImageReader reader) {
             //Get the raw image bytes
+            //Image image = reader.acquireNextImage();
             Image image = reader.acquireLatestImage();
             //Reads as a JPEG
             try {
-                Log.d(TAG, "Results from recognition: " + recognize(image));
+                Log.d(TAG,"Image Characteristics: ");
+                Log.d(TAG, "Format: " + image.getFormat());
+                Log.d(TAG, "Width: " + image.getWidth());
+                Log.d(TAG, "Height: " + image.getHeight());
+                ImagePreprocessor imagePreprocessor = new ImagePreprocessor();
+                //Processes the image to be entered into the TensorFlow model
+                //Gets the results from the TensorFlow model
+                bitmapPicture = imagePreprocessor.preprocessImage(image);
+                results = mTensorFlowClassifier.doRecognize(bitmapPicture);
             } catch (NullPointerException e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
-            Log.d(TAG, "Format of Image " + image.getFormat());
-            ByteBuffer imageBuf= image.getPlanes()[0].getBuffer();
+            ByteBuffer imageBuf = image.getPlanes()[0].getBuffer();
             final byte[] imageBytes = new byte[imageBuf.remaining()];
+            Log.d(TAG, "Length of imageBytes array: "+imageBytes.length);
             imageBuf.get(imageBytes);
             Log.d(TAG, "Closing Image");
             image.close();
@@ -144,6 +156,7 @@ public class ImageDetector extends Activity {
             //Do something with the image.
             //Image Uploaded to Firebase Storage
             Log.d(TAG, "Photo ready to be processed");
+            Log.d(TAG, "Results from Classification: "+ results);
             StorageReference tensorImages = mStorageReference.child("images/tensor.jpg");
             tensorImages.putBytes(imageBytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -162,18 +175,7 @@ public class ImageDetector extends Activity {
         }
     }
 
-    private List<Classifier.Recognition> recognize(Image image){
-        Log.d(TAG,"Attemping Photo Recognition: ");
-        Log.d(TAG, "Format: " + image.getFormat());
-        Log.d(TAG, "Width: " + image.getHeight());
-        Log.d(TAG, "Height: " + image.getWidth());
-        Bitmap bitmapPicture;
-        //Processes the image to be entered into the TensorFlow model
-        bitmapPicture = mImagePreprocessor.preprocessImage(image);
-        //Gets the results from the TensorFlow model
-        final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmapPicture);
-        return results;
-    }
+
 
     @Override
     protected void onDestroy() {
