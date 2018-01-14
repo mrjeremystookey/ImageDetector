@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import imagedetector.android.stookey.com.imagedetector.classifier.Classifier;
-import imagedetector.android.stookey.com.imagedetector.classifier.TensorFlowImageClassifier;
 
 /**
  * Created by Stookey on 1/11/18.
@@ -37,8 +35,6 @@ import imagedetector.android.stookey.com.imagedetector.classifier.TensorFlowImag
 
 public class ImageDetector extends Activity {
 
-    private ImagePreprocessor mImagePreprocessor;
-    private TensorFlowImageClassifier mTensorFlowClassifier;
 
     private static final String TAG = "ImageDetector";
     private Handler mCameraHandler;
@@ -121,9 +117,7 @@ public class ImageDetector extends Activity {
             //Get the raw image bytes
             Image image = reader.acquireLatestImage();
             //Processes the image to be entered into the TensorFlow model
-            Bitmap bitmapPicture = mImagePreprocessor.preprocessImage(image);
-            //Gets the results from the TensorFlow model
-            final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmapPicture);
+
             ByteBuffer imageBuf= image.getPlanes()[0].getBuffer();
             final byte[] imageBytes = new byte[imageBuf.remaining()];
             imageBuf.get(imageBytes);
