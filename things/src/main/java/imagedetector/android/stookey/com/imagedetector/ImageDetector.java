@@ -120,8 +120,9 @@ public class ImageDetector extends Activity {
         public void onImageAvailable(ImageReader reader) {
             //Get the raw image bytes
             Image image = reader.acquireLatestImage();
+            Bitmap bitmapPicture;
             //Processes the image to be entered into the TensorFlow model
-            Bitmap bitmapPicture = mImagePreprocessor.preprocessImage(image);
+            bitmapPicture = mImagePreprocessor.preprocessImage(image);
             //Gets the results from the TensorFlow model
             final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmapPicture);
             ByteBuffer imageBuf= image.getPlanes()[0].getBuffer();
