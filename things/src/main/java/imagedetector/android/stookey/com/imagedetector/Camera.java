@@ -153,8 +153,8 @@ public class Camera {
     private final CameraCaptureSession.CaptureCallback mCaptureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
         public void onCaptureCompleted( CameraCaptureSession session,  CaptureRequest request, TotalCaptureResult result) {
-
             if(session != null){
+                Log.d(TAG, "Number of Sessions Remaining: " + session.toString());
                 session.close();
                 mCaptureSession = null;
                 Log.d(TAG, "CaptureSession closed");

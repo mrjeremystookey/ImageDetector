@@ -3,6 +3,7 @@ package imagedetector.android.stookey.com.imagedetector;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
+import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -15,7 +16,7 @@ import java.nio.ByteBuffer;
  */
 
 public class ImagePreprocessor {
-
+    private static final String TAG = "ImagePreprocessor";
     private Bitmap rgbFrameBitmap, croppedBitmap;
 
 
@@ -30,6 +31,7 @@ public class ImagePreprocessor {
             return null;
         }
 
+
         Assert.assertEquals("Invalid size width", rgbFrameBitmap.getWidth(), image.getWidth());
         Assert.assertEquals("Invalid size height", rgbFrameBitmap.getHeight(), image.getHeight());
 
@@ -39,6 +41,7 @@ public class ImagePreprocessor {
             Helper.cropAndRescaleBitmap(rgbFrameBitmap, croppedBitmap, 0);
         }
         image.close();
+        Log.d(TAG,"croppedBitmap: " + croppedBitmap.toString());
         return croppedBitmap;
     }
 

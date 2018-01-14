@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -92,13 +93,15 @@ public class ImageDetector extends Activity {
                 @Override
                 public void onButtonEvent(Button button, boolean pressed) {
                     //Do Something with Button Press here.
+
                     try {
                         if(mLed.getValue() == true)
                             mLed.setValue(false);
                         else
                             mLed.setValue(true);
                         Log.d(TAG, "Taking Picture");
-                        mCamera.takePicture();
+                        if(pressed)
+                            mCamera.takePicture();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -120,20 +123,23 @@ public class ImageDetector extends Activity {
         public void onImageAvailable(ImageReader reader) {
             //Get the raw image bytes
             Image image = reader.acquireLatestImage();
-            Bitmap bitmapPicture;
-            //Processes the image to be entered into the TensorFlow model
-            bitmapPicture = mImagePreprocessor.preprocessImage(image);
-            //Gets the results from the TensorFlow model
-            final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmapPicture);
+            //Reads as a JPEG
+            try {
+                Log.d(TAG, "Results from recognition: " + recognize(image));
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "Format of Image " + image.getFormat());
             ByteBuffer imageBuf= image.getPlanes()[0].getBuffer();
             final byte[] imageBytes = new byte[imageBuf.remaining()];
             imageBuf.get(imageBytes);
+            Log.d(TAG, "Closing Image");
             image.close();
-            onPictureTaken(imageBytes);
+            onPictureTaken(imageBytes, image);
         }
     };
 
-    private void onPictureTaken(final byte[] imageBytes){
+    private void onPictureTaken(final byte[] imageBytes, Image image){
         if (imageBytes != null) {
             //Do something with the image.
             //Image Uploaded to Firebase Storage
@@ -144,6 +150,7 @@ public class ImageDetector extends Activity {
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     Uri downloadUrl = taskSnapshot.getDownloadUrl();
                     Log.d(TAG, "View the image here: " + downloadUrl);
+                    Log.d(TAG, "Photo uploaded to Firebase Storage");
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -153,6 +160,19 @@ public class ImageDetector extends Activity {
             });
 
         }
+    }
+
+    private List<Classifier.Recognition> recognize(Image image){
+        Log.d(TAG,"Attemping Photo Recognition: ");
+        Log.d(TAG, "Format: " + image.getFormat());
+        Log.d(TAG, "Width: " + image.getHeight());
+        Log.d(TAG, "Height: " + image.getWidth());
+        Bitmap bitmapPicture;
+        //Processes the image to be entered into the TensorFlow model
+        bitmapPicture = mImagePreprocessor.preprocessImage(image);
+        //Gets the results from the TensorFlow model
+        final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmapPicture);
+        return results;
     }
 
     @Override
