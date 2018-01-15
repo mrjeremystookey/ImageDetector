@@ -2,6 +2,8 @@ package imagedetector.android.stookey.com.imagedetector.classifier;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Log;
+
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 import java.util.List;
 
@@ -38,7 +40,9 @@ public class TensorFlowImageClassifier implements Classifier {
 
     @Override
     public List<Recognition> doRecognize(Bitmap image) {
+        Log.d(TAG, "starting recognition...");
         float[] pixels = Helper.getPixels(image, intValues, floatValues);
+        Log.d(TAG, "length of pixelData: " + pixels.length);
         inferenceInterface.feed(Helper.INPUT_NAME, pixels, Helper.NETWORK_STRUCTURE);
         inferenceInterface.run(Helper.OUTPUT_NAMES);
         //Fetch results into an array of confidence per category

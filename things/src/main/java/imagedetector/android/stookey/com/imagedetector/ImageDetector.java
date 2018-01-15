@@ -117,6 +117,8 @@ public class ImageDetector extends Activity {
         }
 
         mStorageReference = FirebaseStorage.getInstance().getReference();
+        //Error when initializing the TensorFlowImageClassifier
+        mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
 
     }
 
@@ -137,7 +139,9 @@ public class ImageDetector extends Activity {
                 //Processes the image to be entered into the TensorFlow model
                 //Gets the results from the TensorFlow model
                 bitmapPicture = imagePreprocessor.preprocessImage(image);
+                Log.d(TAG, "bitmapPicture check (width, height): " + bitmapPicture.getWidth() + ", " + bitmapPicture.getHeight());
                 results = mTensorFlowClassifier.doRecognize(bitmapPicture);
+                Log.d(TAG, "Results" + results);
             } catch (NullPointerException e) {
                 //e.printStackTrace();
             }
@@ -147,30 +151,33 @@ public class ImageDetector extends Activity {
             imageBuf.get(imageBytes);
             Log.d(TAG, "Closing Image");
             image.close();
-            onPictureTaken(imageBytes, image);
+            onPictureTaken(imageBytes, results);
         }
     };
 
-    private void onPictureTaken(final byte[] imageBytes, Image image){
+    private void onPictureTaken(final byte[] imageBytes, List<Classifier.Recognition> results){
         if (imageBytes != null) {
             //Do something with the image.
             //Image Uploaded to Firebase Storage
-            Log.d(TAG, "Photo ready to be processed");
-            Log.d(TAG, "Results from Classification: "+ results);
+            Log.i(TAG, "Photo ready to be processed");
             StorageReference tensorImages = mStorageReference.child("images/tensor.jpg");
-            tensorImages.putBytes(imageBytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                    Log.d(TAG, "View the image here: " + downloadUrl);
-                    Log.d(TAG, "Photo uploaded to Firebase Storage");
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.d(TAG, "Unable to upload to Firebase");
-                }
-            });
+            try {
+                tensorImages.putBytes(imageBytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        Log.i(TAG, "View the image here: " + downloadUrl);
+                        Log.i(TAG, "Photo uploaded to Firebase Storage");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Unable to upload to Firebase");
+                    }
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
         }
     }
@@ -181,7 +188,6 @@ public class ImageDetector extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         mCameraThread.quitSafely();
-        Log.i(TAG, "destroying assistant demo");
         if (mLed != null) {
             try {
                 mLed.close();
