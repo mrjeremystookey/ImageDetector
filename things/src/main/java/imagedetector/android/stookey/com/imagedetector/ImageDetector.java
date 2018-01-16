@@ -116,30 +116,13 @@ public class ImageDetector extends Activity {
             e.printStackTrace();
         }
 
-        //mStorageReference = FirebaseStorage.getInstance().getReference();
+        mStorageReference = FirebaseStorage.getInstance().getReference();
         //Error when initializing the TensorFlowImageClassifier
-        //mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
+        mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
 
     }
 
 
-    private void init() {
-        initPIO();
-    }
-
-
-    private void initPIO(){
-
-    }
-
-
-    private Runnable mInitializeOnBackground = new Runnable(){
-        @Override
-        public void run() {
-            mStorageReference = FirebaseStorage.getInstance().getReference();
-            mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
-        }
-    };
 
     private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
@@ -161,7 +144,7 @@ public class ImageDetector extends Activity {
                 results = mTensorFlowClassifier.doRecognize(bitmapPicture);
                 Log.d(TAG, "Results" + results);
             } catch (NullPointerException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
             ByteBuffer imageBuf = image.getPlanes()[0].getBuffer();
             final byte[] imageBytes = new byte[imageBuf.remaining()];

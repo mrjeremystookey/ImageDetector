@@ -35,7 +35,7 @@ public class Helper {
     private static final int IMAGE_MEAN = 117;
     private static final float IMAGE_STD = 1;
     private static final String LABELS_FILE = "imagenet_comp_graph_label_strings.txt";
-    public static final String MODEL_FILE = "/Users/Stookey/AndroidStudioProjects/ImageDetector/things/assets/tensorflow_inception_graph.pb";
+    public static final String MODEL_FILE = "things/src/assets/tensorflow_inception_graph.pb";
     public static final String INPUT_NAME = "input:0";
     public static final String OUTPUT_OPERATION = "output";
     public static final String OUTPUT_NAME = OUTPUT_OPERATION + ":0";
