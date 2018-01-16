@@ -45,6 +45,7 @@ public class ImageDetector extends Activity {
     private Handler mCameraHandler;
     private HandlerThread mCameraThread;
 
+    //Firebase connectivity.
     private StorageReference mStorageReference;
 
     private Camera mCamera;
@@ -88,7 +89,6 @@ public class ImageDetector extends Activity {
 
         Log.d(TAG, "Configuring GPIO Peripheral Pins from the VoiceHat");
         try {
-
             mButton = VoiceHat.openButton();
             mLed = VoiceHat.openLed();
             mButton.setDebounceDelay(BUTTON_DEBOUNCE_DELAY_MS);
@@ -116,12 +116,30 @@ public class ImageDetector extends Activity {
             e.printStackTrace();
         }
 
-        mStorageReference = FirebaseStorage.getInstance().getReference();
+        //mStorageReference = FirebaseStorage.getInstance().getReference();
         //Error when initializing the TensorFlowImageClassifier
-        mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
+        //mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
 
     }
 
+
+    private void init() {
+        initPIO();
+    }
+
+
+    private void initPIO(){
+
+    }
+
+
+    private Runnable mInitializeOnBackground = new Runnable(){
+        @Override
+        public void run() {
+            mStorageReference = FirebaseStorage.getInstance().getReference();
+            mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
+        }
+    };
 
     private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
