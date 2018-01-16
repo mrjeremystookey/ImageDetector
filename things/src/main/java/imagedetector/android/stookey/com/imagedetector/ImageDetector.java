@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.Image;
 import android.media.ImageReader;
 import android.net.Uri;
@@ -42,7 +41,7 @@ public class ImageDetector extends Activity {
     private TensorFlowImageClassifier mTensorFlowClassifier;
 
     private static final String TAG = "ImageDetector";
-    private Handler mCameraHandler;
+    private Handler mBackgroundHandler;
     private HandlerThread mCameraThread;
 
     //Firebase connectivity.
@@ -66,9 +65,6 @@ public class ImageDetector extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        service = new PeripheralManagerService();
-        Log.d(TAG, "onCreate: Available GPIO " + service.getGpioList());
-
         if (checkSelfPermission(Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             // A problem occurred auto-granting the permission
@@ -76,17 +72,23 @@ public class ImageDetector extends Activity {
             return;
         } else
             Log.d(TAG, "Camera Permission Granted");
+        init();
+    }
 
+
+    private void init() {
+        initPIO();
         //Creating background worker thread to handle camera actions
         mCameraThread = new HandlerThread("CameraBackground");
         mCameraThread.start();
-        mCameraHandler = new Handler(mCameraThread.getLooper());
-
-        Log.d(TAG, "Type of mCamera" + mCamera);
-        mCamera = Camera.getInstance();
-        mCamera.initializeCamera(this, mCameraHandler, mOnImageAvailableListener);
+        mBackgroundHandler = new Handler(mCameraThread.getLooper());
+        mBackgroundHandler.post(mInitializeOnBackground);
+    }
 
 
+    private void initPIO(){
+        service = new PeripheralManagerService();
+        Log.d(TAG, "onCreate: Available GPIO " + service.getGpioList());
         Log.d(TAG, "Configuring GPIO Peripheral Pins from the VoiceHat");
         try {
             mButton = VoiceHat.openButton();
@@ -115,29 +117,19 @@ public class ImageDetector extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        //mStorageReference = FirebaseStorage.getInstance().getReference();
-        //Error when initializing the TensorFlowImageClassifier
-        //mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
-
-    }
-
-
-    private void init() {
-        initPIO();
-    }
-
-
-    private void initPIO(){
-
     }
 
 
     private Runnable mInitializeOnBackground = new Runnable(){
         @Override
         public void run() {
+            Log.d(TAG, "Initializing on background thread...");
+            Log.d(TAG, "Type of mCamera" + mCamera);
+            mCamera = Camera.getInstance();
+            mCamera.initializeCamera(ImageDetector.this, mBackgroundHandler, mOnImageAvailableListener);
             mStorageReference = FirebaseStorage.getInstance().getReference();
             mTensorFlowClassifier = new TensorFlowImageClassifier(ImageDetector.this);
+            mImagePreprocessor = new ImagePreprocessor();
         }
     };
 
@@ -153,10 +145,9 @@ public class ImageDetector extends Activity {
                 Log.d(TAG, "Format: " + image.getFormat());
                 Log.d(TAG, "Width: " + image.getWidth());
                 Log.d(TAG, "Height: " + image.getHeight());
-                ImagePreprocessor imagePreprocessor = new ImagePreprocessor();
                 //Processes the image to be entered into the TensorFlow model
                 //Gets the results from the TensorFlow model
-                bitmapPicture = imagePreprocessor.preprocessImage(image);
+                bitmapPicture = mImagePreprocessor.preprocessImage(image);
                 Log.d(TAG, "bitmapPicture check (width, height): " + bitmapPicture.getWidth() + ", " + bitmapPicture.getHeight());
                 results = mTensorFlowClassifier.doRecognize(bitmapPicture);
                 Log.d(TAG, "Results" + results);
